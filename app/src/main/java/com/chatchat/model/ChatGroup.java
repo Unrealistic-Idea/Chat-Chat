@@ -1,12 +1,15 @@
 package com.chatchat.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import java.util.List;
 
 @Entity(tableName = "chat_groups")
 public class ChatGroup {
     @PrimaryKey
+    @NonNull
     private String groupId;
     private String groupName;
     private String groupAvatarUrl;
@@ -22,6 +25,7 @@ public class ChatGroup {
     // Constructors
     public ChatGroup() {}
 
+    @Ignore
     public ChatGroup(String groupId, String groupName, String createdBy) {
         this.groupId = groupId;
         this.groupName = groupName;

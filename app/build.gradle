@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'com.chatchat'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.chatchat"
-        minSdk 24
-        targetSdk 34
+        minSdk 33
+        targetSdk 36
         versionCode 1
         versionName "1.0"
 
@@ -23,8 +23,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     
     buildFeatures {
@@ -36,27 +36,68 @@ android {
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/license.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/notice.txt', 'META-INF/ASL2.0']
         }
+        exclude 'META-INF/AL2.0'
+        exclude 'META-INF/LGPL2.1'
+        exclude 'xsd/catalog.xml'
+        exclude 'META-INF/LICENSE.md'
+        exclude 'META-INF/NOTICE.md'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/io.netty.versions.properties'
+        exclude 'META-INF/INDEX.LIST'
+    }
+}
+
+// Add dependency resolution strategy to handle conflicts
+configurations.all {
+    resolutionStrategy {
+        // Force specific versions to resolve conflicts
+        force 'com.google.crypto.tink:tink-android:1.8.0'
+        force 'jakarta.activation:jakarta.activation-api:1.2.1'
+
+        // Exclude conflicting dependencies
+        exclude group: 'com.google.crypto.tink', module: 'tink'
+        exclude group: 'com.sun.activation', module: 'javax.activation'
     }
 }
 
 dependencies {
+    implementation 'com.android.tools.build:gradle:8.3.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+
+    // Use only tink-android, exclude regular tink
+    implementation('com.google.crypto.tink:tink-android:1.8.0') {
+        exclude group: 'com.google.crypto.tink', module: 'tink'
+    }
+
+    // Use only jakarta activation API, exclude javax.activation
+    implementation('jakarta.activation:jakarta.activation-api:1.2.1') {
+        exclude group: 'com.sun.activation', module: 'javax.activation'
+    }
+
     implementation 'androidx.navigation:navigation-fragment:2.7.6'
     implementation 'androidx.navigation:navigation-ui:2.7.6'
+    implementation 'com.github.bumptech.glide:recyclerview-integration:4.16.0'
+    implementation 'com.google.guava:guava:31.1-android'
     
     // Room Database
     implementation 'androidx.room:room-runtime:2.6.1'
     annotationProcessor 'androidx.room:room-compiler:2.6.1'
     
     // JWT - Updated to stable version
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-    
+    implementation('io.jsonwebtoken:jjwt-api:0.11.5') {
+        exclude group: 'com.sun.activation', module: 'javax.activation'
+    }
+    implementation('io.jsonwebtoken:jjwt-impl:0.11.5') {
+        exclude group: 'com.sun.activation', module: 'javax.activation'
+    }
+    implementation('io.jsonwebtoken:jjwt-jackson:0.11.5') {
+        exclude group: 'com.sun.activation', module: 'javax.activation'
+    }
+
     // Network
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
@@ -89,7 +130,7 @@ dependencies {
     implementation('androidx.work:work-runtime:2.9.0') {
         exclude group: 'com.android.tools.build', module: 'bundletool'
     }
-    
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

@@ -39,12 +39,14 @@
             
         <activity
             android:name=".ui.chat.ChatActivity"
-            android:exported="false" />
-            
+            android:exported="false"
+            android:theme="@style/Theme.ChatChat.NoActionBar" />
+
         <activity
             android:name=".ui.chat.GroupChatActivity"
-            android:exported="false" />
-            
+            android:exported="false"
+            android:theme="@style/Theme.ChatChat.NoActionBar" />
+
         <activity
             android:name=".ui.profile.ProfileActivity"
             android:exported="false" />

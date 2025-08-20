@@ -60,9 +60,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (viewType == TYPE_MESSAGE_SENT) {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_sent, parent, false);
-            // 为消息视图启用GPU加速
             GpuOptimizationManager.enableGpuLayerForView(view);
-            return new SentMessageViewHolder(view);
+            return new SentMessageViewHolder(view, this);
         } else {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_received, parent, false);
@@ -142,9 +141,11 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         private TextView textViewMessage;
         private TextView textViewTime;
         private TextView textViewStatus;
+        private MessageAdapter adapter;
 
-        public SentMessageViewHolder(@NonNull View itemView) {
+        public SentMessageViewHolder(@NonNull View itemView, MessageAdapter adapter) {
             super(itemView);
+            this.adapter = adapter;
             textViewMessage = itemView.findViewById(R.id.textViewMessage);
             textViewTime = itemView.findViewById(R.id.textViewTime);
             textViewStatus = itemView.findViewById(R.id.textViewStatus);
@@ -168,7 +169,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             
             // Add long press listener for message recall
             itemView.setOnLongClickListener(v -> {
-                showMessageOptions(message, v);
+                adapter.showMessageOptions(message, v);
                 return true;
             });
         }

@@ -1,11 +1,14 @@
 package com.chatchat.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "users")
 public class User {
     @PrimaryKey
+    @NonNull
     private String travelerId;
     private String username;
     private String avatarUrl;
@@ -19,6 +22,7 @@ public class User {
     // Constructors
     public User() {}
 
+    @Ignore
     public User(String travelerId, String username) {
         this.travelerId = travelerId;
         this.username = username;

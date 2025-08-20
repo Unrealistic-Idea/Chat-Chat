@@ -1,11 +1,14 @@
 package com.chatchat.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "messages")
 public class Message {
     @PrimaryKey
+    @NonNull
     private String messageId;
     private String senderId;
     private String receiverId; // null for group messages
@@ -26,6 +29,7 @@ public class Message {
     // Constructors
     public Message() {}
 
+    @Ignore
     public Message(String messageId, String senderId, String content, MessageType type) {
         this.messageId = messageId;
         this.senderId = senderId;

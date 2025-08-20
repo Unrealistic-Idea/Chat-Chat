@@ -11,6 +11,7 @@ import com.bumptech.glide.load.engine.cache.InternalCacheDiskCacheFactory;
 import com.bumptech.glide.load.engine.cache.LruResourceCache;
 import com.bumptech.glide.module.AppGlideModule;
 import com.bumptech.glide.request.RequestOptions;
+//import com.chatchat.BuildConfig;
 
 /**
  * GPU优化的Glide配置模块
@@ -40,9 +41,9 @@ public class GpuOptimizedGlideModule extends AppGlideModule {
         builder.setDefaultRequestOptions(defaultOptions);
         
         // 启用日志（仅在调试模式下）
-        if (com.chatchat.BuildConfig.DEBUG) {
-            builder.setLogLevel(android.util.Log.VERBOSE);
-        }
+//        if (BuildConfig.DEBUG) {
+//            builder.setLogLevel(android.util.Log.VERBOSE);
+//        }
     }
     
     @Override
