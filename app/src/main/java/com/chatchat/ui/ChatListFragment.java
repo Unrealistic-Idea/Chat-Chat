@@ -20,6 +20,7 @@ import com.chatchat.model.User;
 import com.chatchat.model.ChatGroup;
 import com.chatchat.ui.adapter.ChatListAdapter;
 import com.chatchat.ui.chat.GroupChatActivity;
+import com.chatchat.utils.GpuOptimizationManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -66,6 +67,9 @@ public class ChatListFragment extends Fragment {
         chatListAdapter.setOnChatItemClickListener(this::openChat);
         recyclerViewChats.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerViewChats.setAdapter(chatListAdapter);
+        
+        // 为RecyclerView启用GPU优化
+        GpuOptimizationManager.optimizeRecyclerViewForGpu(recyclerViewChats);
     }
 
     private void openChat(ChatItem chatItem) {

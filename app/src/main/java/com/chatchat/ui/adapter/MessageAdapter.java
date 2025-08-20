@@ -9,6 +9,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 import com.chatchat.R;
 import com.chatchat.model.Message;
+import com.chatchat.utils.GpuOptimizationManager;
 import io.noties.markwon.Markwon;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -59,10 +60,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (viewType == TYPE_MESSAGE_SENT) {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_sent, parent, false);
+            // 为消息视图启用GPU加速
+            GpuOptimizationManager.enableGpuLayerForView(view);
             return new SentMessageViewHolder(view);
         } else {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_received, parent, false);
+            // 为消息视图启用GPU加速
+            GpuOptimizationManager.enableGpuLayerForView(view);
             return new ReceivedMessageViewHolder(view);
         }
     }

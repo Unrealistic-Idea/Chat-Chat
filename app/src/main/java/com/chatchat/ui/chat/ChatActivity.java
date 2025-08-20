@@ -25,6 +25,7 @@ import com.chatchat.database.AppDatabase;
 import com.chatchat.database.MessageDao;
 import com.chatchat.model.Message;
 import com.chatchat.ui.adapter.MessageAdapter;
+import com.chatchat.utils.GpuOptimizationManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -65,6 +66,10 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // 启用GPU硬件加速
+        GpuOptimizationManager.enableHardwareAcceleration(this);
+        
         setContentView(R.layout.activity_chat);
 
         getIntentData();
@@ -124,6 +129,9 @@ public class ChatActivity extends AppCompatActivity {
         layoutManager.setStackFromEnd(true);
         recyclerViewMessages.setLayoutManager(layoutManager);
         recyclerViewMessages.setAdapter(messageAdapter);
+        
+        // 为消息RecyclerView启用GPU优化
+        GpuOptimizationManager.optimizeRecyclerViewForGpu(recyclerViewMessages);
     }
 
     private void setupClickListeners() {
