@@ -30,6 +30,13 @@ android {
     buildFeatures {
         viewBinding true
     }
+
+    // Packaging options to avoid conflicts
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/license.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/notice.txt', 'META-INF/ASL2.0']
+        }
+    }
 }
 
 dependencies {
@@ -45,7 +52,7 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.6.1'
     annotationProcessor 'androidx.room:room-compiler:2.6.1'
     
-    // JWT
+    // JWT - Updated to stable version
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
@@ -53,7 +60,9 @@ dependencies {
     // Network
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    implementation('com.squareup.okhttp3:logging-interceptor:4.12.0') {
+        exclude group: 'com.android.tools.build', module: 'bundletool'
+    }
     
     // Image Loading
     implementation 'com.github.bumptech.glide:glide:4.16.0'
@@ -64,16 +73,22 @@ dependencies {
     implementation 'io.noties.markwon:editor:4.6.2'
     
     // Charts
-    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    implementation('com.github.PhilJay:MPAndroidChart:v3.1.0') {
+        exclude group: 'com.android.support'
+    }
     
     // Encryption
-    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+    implementation('androidx.security:security-crypto:1.1.0-alpha06') {
+        exclude group: 'com.android.tools.build', module: 'bundletool'
+    }
     
     // RecyclerView
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
     
     // Notifications
-    implementation 'androidx.work:work-runtime:2.9.0'
+    implementation('androidx.work:work-runtime:2.9.0') {
+        exclude group: 'com.android.tools.build', module: 'bundletool'
+    }
     
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
