@@ -2,7 +2,9 @@ package com.chatchat.ui.profile;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,10 +13,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import com.bumptech.glide.Glide;
 import com.chatchat.R;
 import com.chatchat.ui.auth.LoginActivity;
+import com.chatchat.utils.AvatarManager;
 import com.google.android.material.button.MaterialButton;
+import java.io.File;
 
 public class ProfileFragment extends Fragment {
 
@@ -26,6 +32,9 @@ public class ProfileFragment extends Fragment {
     private LinearLayout layoutShareContact;
     private MaterialButton buttonLogout;
     private SharedPreferences sharedPreferences;
+    private AvatarManager avatarManager;
+    
+    private static final int REQUEST_AVATAR_PICK = 2001;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -33,6 +42,7 @@ public class ProfileFragment extends Fragment {
 
         initViews(root);
         initSharedPreferences();
+        avatarManager = new AvatarManager(requireContext());
         loadUserProfile();
         setupClickListeners();
 
@@ -57,16 +67,21 @@ public class ProfileFragment extends Fragment {
         String currentUserId = sharedPreferences.getString("current_user_id", "未知用户");
         textViewProfileName.setText(currentUserId);
         textViewProfileTravelerId.setText("旅者ID: " + currentUserId);
+        
+        // Load avatar
+        String avatarPath = avatarManager.getAvatarPath();
+        if (avatarPath != null && new File(avatarPath).exists()) {
+            Glide.with(this)
+                    .load(avatarPath)
+                    .circleCrop()
+                    .into(imageViewProfileAvatar);
+        }
     }
 
     private void setupClickListeners() {
-        layoutChangeAvatar.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "更换头像功能开发中...", Toast.LENGTH_SHORT).show();
-        });
+        layoutChangeAvatar.setOnClickListener(v -> changeAvatar());
 
-        layoutAvatarAccessory.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "头像挂件功能开发中...", Toast.LENGTH_SHORT).show();
-        });
+        layoutAvatarAccessory.setOnClickListener(v -> showAccessoryPicker());
 
         layoutShareContact.setOnClickListener(v -> {
             shareContact();
@@ -75,6 +90,46 @@ public class ProfileFragment extends Fragment {
         buttonLogout.setOnClickListener(v -> {
             logout();
         });
+    }
+
+    private void changeAvatar() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        intent.setType("image/*");
+        startActivityForResult(intent, REQUEST_AVATAR_PICK);
+    }
+
+    private void showAccessoryPicker() {
+        String[] accessories = avatarManager.getAvailableAccessories();
+        
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("选择头像挂件");
+        builder.setItems(accessories, (dialog, which) -> {
+            avatarManager.setAvatarAccessory(accessories[which]);
+            Toast.makeText(getContext(), "挂件已设置: " + accessories[which], Toast.LENGTH_SHORT).show();
+        });
+        builder.setNegativeButton("移除挂件", (dialog, which) -> {
+            avatarManager.clearAccessory();
+            Toast.makeText(getContext(), "挂件已移除", Toast.LENGTH_SHORT).show();
+        });
+        builder.show();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_AVATAR_PICK && resultCode == getActivity().RESULT_OK && data != null) {
+            Uri avatarUri = data.getData();
+            if (avatarUri != null) {
+                boolean saved = avatarManager.saveAvatar(avatarUri);
+                if (saved) {
+                    loadUserProfile(); // Refresh the avatar display
+                    Toast.makeText(getContext(), "头像已更新", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "头像保存失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 
     private void shareContact() {

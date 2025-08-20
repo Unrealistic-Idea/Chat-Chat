@@ -22,6 +22,7 @@ import com.chatchat.ui.auth.LoginActivity;
 import com.chatchat.database.AppDatabase;
 import com.chatchat.database.ChatGroupDao;
 import com.chatchat.model.ChatGroup;
+import com.chatchat.service.CloudSyncManager;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration mAppBarConfiguration;
     private SharedPreferences sharedPreferences;
     private ExecutorService executor;
+    private CloudSyncManager cloudSyncManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,10 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+        
+        // Initialize cloud sync
+        cloudSyncManager = new CloudSyncManager(this);
+        cloudSyncManager.startPeriodicSync();
     }
 
     private boolean isUserLoggedIn() {
@@ -142,6 +148,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if (executor != null) {
             executor.shutdown();
+        }
+        if (cloudSyncManager != null) {
+            cloudSyncManager.stopPeriodicSync();
         }
     }
 }

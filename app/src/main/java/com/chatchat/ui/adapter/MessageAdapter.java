@@ -5,9 +5,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 import com.chatchat.R;
 import com.chatchat.model.Message;
+import io.noties.markwon.Markwon;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -20,10 +22,19 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private List<Message> messages;
     private String currentUserId;
+    private OnMessageActionListener messageActionListener;
+
+    public interface OnMessageActionListener {
+        void onMessageRecall(Message message);
+    }
 
     public MessageAdapter(List<Message> messages, String currentUserId) {
         this.messages = messages;
         this.currentUserId = currentUserId;
+    }
+
+    public void setOnMessageActionListener(OnMessageActionListener listener) {
+        this.messageActionListener = listener;
     }
 
     public void updateMessages(List<Message> newMessages) {
@@ -88,7 +99,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 break;
             case MARKDOWN:
                 textView.setTextSize(14);
-                textView.setText(message.getContent() + " 📝");
+                Markwon markwon = Markwon.create(textView.getContext());
+                markwon.setMarkdown(textView, message.getContent());
                 break;
             case CHART:
                 textView.setTextSize(14);
@@ -98,6 +110,26 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 textView.setTextSize(14);
                 textView.setText(message.getContent());
                 break;
+        }
+    }
+
+    private void showMessageOptions(Message message, View view) {
+        // Only allow recall for sent messages that are less than 2 minutes old
+        long currentTime = System.currentTimeMillis();
+        long messageTime = message.getTimestamp();
+        boolean canRecall = message.getSenderId().equals(currentUserId) && 
+                           (currentTime - messageTime) < 120000 && // 2 minutes
+                           !message.isRecalled();
+        
+        if (canRecall) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+            builder.setTitle("消息操作");
+            builder.setItems(new String[]{"撤回消息"}, (dialog, which) -> {
+                if (which == 0 && messageActionListener != null) {
+                    messageActionListener.onMessageRecall(message);
+                }
+            });
+            builder.show();
         }
     }
 
@@ -128,6 +160,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             textViewTime.setText(timeFormat.format(new Date(message.getTimestamp())));
             
             textViewStatus.setText(message.isRead() ? "已读" : "未读");
+            
+            // Add long press listener for message recall
+            itemView.setOnLongClickListener(v -> {
+                showMessageOptions(message, v);
+                return true;
+            });
         }
     }
 

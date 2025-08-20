@@ -119,6 +119,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void setupRecyclerView() {
         messageAdapter = new MessageAdapter(new ArrayList<>(), currentUserId);
+        messageAdapter.setOnMessageActionListener(this::recallMessage);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
         recyclerViewMessages.setLayoutManager(layoutManager);
@@ -129,6 +130,10 @@ public class ChatActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
         
         buttonSend.setOnClickListener(v -> sendMessage());
+        buttonSend.setOnLongClickListener(v -> {
+            sendMarkdownMessage();
+            return true;
+        });
         
         buttonEmoji.setOnClickListener(v -> showEmojiPicker());
         
@@ -325,6 +330,52 @@ public class ChatActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 messageAdapter.addMessage(imageMessage);
                 recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
+            });
+        });
+    }
+
+    private void sendMarkdownMessage() {
+        String messageText = editTextMessage.getText().toString().trim();
+        if (TextUtils.isEmpty(messageText)) {
+            return;
+        }
+
+        editTextMessage.setText("");
+        
+        // Create and save markdown message
+        Message markdownMessage = new Message(
+            UUID.randomUUID().toString(),
+            currentUserId,
+            messageText,
+            Message.MessageType.MARKDOWN
+        );
+        
+        if (isAiChat) {
+            markdownMessage.setReceiverId("ai_assistant");
+        } else {
+            markdownMessage.setReceiverId(chatUserId);
+        }
+
+        executor.execute(() -> {
+            messageDao.insertMessage(markdownMessage);
+            
+            runOnUiThread(() -> {
+                messageAdapter.addMessage(markdownMessage);
+                recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
+                Toast.makeText(this, "Markdown消息已发送", Toast.LENGTH_SHORT).show();
+            });
+        });
+    }
+
+    private void recallMessage(Message message) {
+        executor.execute(() -> {
+            messageDao.recallMessage(message.getMessageId());
+            
+            runOnUiThread(() -> {
+                // Update the message in the adapter
+                message.setRecalled(true);
+                messageAdapter.notifyDataSetChanged();
+                Toast.makeText(this, "消息已撤回", Toast.LENGTH_SHORT).show();
             });
         });
     }
