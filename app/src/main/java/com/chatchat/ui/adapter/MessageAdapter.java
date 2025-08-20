@@ -72,6 +72,35 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return messages.size();
     }
 
+    private static void displayMessageContent(Message message, TextView textView) {
+        switch (message.getType()) {
+            case EMOJI:
+                textView.setTextSize(24); // Larger text for emojis
+                textView.setText(message.getContent());
+                break;
+            case IMAGE:
+                textView.setTextSize(14); // Normal size
+                textView.setText(message.getContent() + " 📷");
+                break;
+            case VOICE:
+                textView.setTextSize(14);
+                textView.setText(message.getContent() + " 🎵");
+                break;
+            case MARKDOWN:
+                textView.setTextSize(14);
+                textView.setText(message.getContent() + " 📝");
+                break;
+            case CHART:
+                textView.setTextSize(14);
+                textView.setText(message.getContent() + " 📊");
+                break;
+            default:
+                textView.setTextSize(14);
+                textView.setText(message.getContent());
+                break;
+        }
+    }
+
     static class SentMessageViewHolder extends RecyclerView.ViewHolder {
         private TextView textViewMessage;
         private TextView textViewTime;
@@ -90,7 +119,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 textViewMessage.setTextColor(itemView.getContext().getColor(R.color.dark_gray));
                 textViewMessage.setAlpha(0.6f);
             } else {
-                textViewMessage.setText(message.getContent());
+                displayMessageContent(message, textViewMessage);
                 textViewMessage.setTextColor(itemView.getContext().getColor(R.color.black));
                 textViewMessage.setAlpha(1.0f);
             }
@@ -120,7 +149,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 textViewMessage.setTextColor(itemView.getContext().getColor(R.color.dark_gray));
                 textViewMessage.setAlpha(0.6f);
             } else {
-                textViewMessage.setText(message.getContent());
+                displayMessageContent(message, textViewMessage);
                 textViewMessage.setTextColor(itemView.getContext().getColor(R.color.black));
                 textViewMessage.setAlpha(1.0f);
             }

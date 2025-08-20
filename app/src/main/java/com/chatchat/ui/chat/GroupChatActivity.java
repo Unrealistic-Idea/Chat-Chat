@@ -23,7 +23,9 @@ import android.Manifest;
 import com.chatchat.R;
 import com.chatchat.database.AppDatabase;
 import com.chatchat.database.MessageDao;
+import com.chatchat.database.ChatGroupDao;
 import com.chatchat.model.Message;
+import com.chatchat.model.ChatGroup;
 import com.chatchat.ui.adapter.MessageAdapter;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +33,10 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ChatActivity extends AppCompatActivity {
+public class GroupChatActivity extends AppCompatActivity {
     
-    public static final String EXTRA_CHAT_NAME = "chat_name";
-    public static final String EXTRA_CHAT_USER_ID = "chat_user_id";
-    public static final String EXTRA_IS_AI_CHAT = "is_ai_chat";
+    public static final String EXTRA_GROUP_ID = "group_id";
+    public static final String EXTRA_GROUP_NAME = "group_name";
     
     private static final int REQUEST_IMAGE_PICK = 1001;
     private static final int REQUEST_CAMERA_PERMISSION = 1002;
@@ -54,13 +55,14 @@ public class ChatActivity extends AppCompatActivity {
     private MessageAdapter messageAdapter;
     private AppDatabase database;
     private MessageDao messageDao;
+    private ChatGroupDao chatGroupDao;
     private ExecutorService executor;
     private SharedPreferences sharedPreferences;
     
-    private String chatName;
-    private String chatUserId;
-    private boolean isAiChat;
+    private String groupId;
+    private String groupName;
     private String currentUserId;
+    private ChatGroup currentGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,15 +76,18 @@ public class ChatActivity extends AppCompatActivity {
         setupRecyclerView();
         setupClickListeners();
         loadMessages();
+        loadGroupInfo();
     }
 
     private void getIntentData() {
-        chatName = getIntent().getStringExtra(EXTRA_CHAT_NAME);
-        chatUserId = getIntent().getStringExtra(EXTRA_CHAT_USER_ID);
-        isAiChat = getIntent().getBooleanExtra(EXTRA_IS_AI_CHAT, false);
+        groupId = getIntent().getStringExtra(EXTRA_GROUP_ID);
+        groupName = getIntent().getStringExtra(EXTRA_GROUP_NAME);
         
-        if (chatName == null) chatName = "聊天";
-        if (chatUserId == null) chatUserId = "ai_assistant";
+        if (groupId == null) {
+            finish();
+            return;
+        }
+        if (groupName == null) groupName = "群聊";
     }
 
     private void initViews() {
@@ -101,9 +106,10 @@ public class ChatActivity extends AppCompatActivity {
     private void initDatabase() {
         database = AppDatabase.getDatabase(this);
         messageDao = database.messageDao();
+        chatGroupDao = database.chatGroupDao();
         executor = Executors.newSingleThreadExecutor();
         sharedPreferences = getSharedPreferences("ChatChatPrefs", MODE_PRIVATE);
-        currentUserId = sharedPreferences.getString("current_user_id", "unknown");
+        currentUserId = sharedPreferences.getString("current_user_id", "");
     }
 
     private void setupToolbar() {
@@ -113,8 +119,8 @@ public class ChatActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
         
-        textViewChatName.setText(chatName);
-        textViewChatStatus.setText(isAiChat ? "AI助手" : "在线");
+        textViewChatName.setText(groupName);
+        textViewChatStatus.setText("群聊");
     }
 
     private void setupRecyclerView() {
@@ -141,12 +147,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void loadMessages() {
         executor.execute(() -> {
-            List<Message> messages;
-            if (isAiChat) {
-                messages = messageDao.getAiMessages(currentUserId);
-            } else {
-                messages = messageDao.getDirectMessages(currentUserId, chatUserId);
-            }
+            List<Message> messages = messageDao.getGroupMessages(groupId);
 
             runOnUiThread(() -> {
                 messageAdapter.updateMessages(messages);
@@ -154,6 +155,22 @@ public class ChatActivity extends AppCompatActivity {
                     recyclerViewMessages.scrollToPosition(messages.size() - 1);
                 }
             });
+        });
+    }
+
+    private void loadGroupInfo() {
+        executor.execute(() -> {
+            currentGroup = chatGroupDao.getChatGroupById(groupId);
+            if (currentGroup != null) {
+                runOnUiThread(() -> {
+                    textViewChatName.setText(currentGroup.getGroupName());
+                    // Update member count status
+                    if (currentGroup.getMemberIds() != null) {
+                        int memberCount = currentGroup.getMemberIds().size();
+                        textViewChatStatus.setText(memberCount + "人");
+                    }
+                });
+            }
         });
     }
 
@@ -165,80 +182,28 @@ public class ChatActivity extends AppCompatActivity {
 
         editTextMessage.setText("");
         
-        // Create and save user message
-        Message userMessage = new Message(
+        // Create and save group message
+        Message groupMessage = new Message(
             UUID.randomUUID().toString(),
             currentUserId,
             messageText,
             Message.MessageType.TEXT
         );
         
-        if (isAiChat) {
-            userMessage.setReceiverId("ai_assistant");
-        } else {
-            userMessage.setReceiverId(chatUserId);
-        }
+        groupMessage.setGroupId(groupId);
 
         executor.execute(() -> {
-            messageDao.insertMessage(userMessage);
+            messageDao.insertMessage(groupMessage);
+            
+            // Update group's last message
+            chatGroupDao.updateLastMessage(groupId, groupMessage.getMessageId(), 
+                    groupMessage.getTimestamp());
             
             runOnUiThread(() -> {
-                messageAdapter.addMessage(userMessage);
+                messageAdapter.addMessage(groupMessage);
                 recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
             });
-
-            // Handle AI response
-            if (isAiChat) {
-                handleAiResponse(messageText);
-            }
         });
-    }
-
-    private void handleAiResponse(String userMessage) {
-        // Simple AI response logic
-        String aiResponse = generateAiResponse(userMessage);
-        
-        Message aiMessage = new Message(
-            UUID.randomUUID().toString(),
-            "ai_assistant",
-            aiResponse,
-            Message.MessageType.TEXT
-        );
-        aiMessage.setReceiverId(currentUserId);
-        aiMessage.setAiMessage(true);
-
-        // Simulate a small delay for AI response
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        messageDao.insertMessage(aiMessage);
-        
-        runOnUiThread(() -> {
-            messageAdapter.addMessage(aiMessage);
-            recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
-        });
-    }
-
-    private String generateAiResponse(String userMessage) {
-        // Simple AI response generator
-        String lowerMessage = userMessage.toLowerCase();
-        
-        if (lowerMessage.contains("你好") || lowerMessage.contains("hello")) {
-            return "你好！我是AI助手，很高兴为您服务！有什么可以帮助您的吗？";
-        } else if (lowerMessage.contains("天气")) {
-            return "抱歉，我目前无法获取实时天气信息。建议您查看天气应用获取准确信息。";
-        } else if (lowerMessage.contains("时间")) {
-            return "当前时间是 " + new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(new java.util.Date());
-        } else if (lowerMessage.contains("谢谢") || lowerMessage.contains("thank")) {
-            return "不客气！很高兴能帮助到您。还有其他问题吗？";
-        } else if (lowerMessage.contains("再见") || lowerMessage.contains("bye")) {
-            return "再见！期待下次与您的对话！";
-        } else {
-            return "我理解您说的是：" + userMessage + "\n\n这是一个演示AI回复。在完整版本中，这里会接入真正的AI API来提供更智能的对话。";
-        }
     }
 
     private void showEmojiPicker() {
@@ -260,14 +225,12 @@ public class ChatActivity extends AppCompatActivity {
             Message.MessageType.EMOJI
         );
         
-        if (isAiChat) {
-            emojiMessage.setReceiverId("ai_assistant");
-        } else {
-            emojiMessage.setReceiverId(chatUserId);
-        }
+        emojiMessage.setGroupId(groupId);
 
         executor.execute(() -> {
             messageDao.insertMessage(emojiMessage);
+            chatGroupDao.updateLastMessage(groupId, emojiMessage.getMessageId(), 
+                    emojiMessage.getTimestamp());
             
             runOnUiThread(() -> {
                 messageAdapter.addMessage(emojiMessage);
@@ -312,15 +275,12 @@ public class ChatActivity extends AppCompatActivity {
         );
         
         imageMessage.setMediaUrl(imageUri);
-        
-        if (isAiChat) {
-            imageMessage.setReceiverId("ai_assistant");
-        } else {
-            imageMessage.setReceiverId(chatUserId);
-        }
+        imageMessage.setGroupId(groupId);
 
         executor.execute(() -> {
             messageDao.insertMessage(imageMessage);
+            chatGroupDao.updateLastMessage(groupId, imageMessage.getMessageId(), 
+                    imageMessage.getTimestamp());
             
             runOnUiThread(() -> {
                 messageAdapter.addMessage(imageMessage);
