@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'com.chatchat'
-    compileSdk 36
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.chatchat"
-        minSdk 33
-        targetSdk 36
+        minSdk 30
+        targetSdk 35
         versionCode 1
         versionName "1.0"
 
