@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Chat-Chat</string>
+    <string name="login">登录</string>
+    <string name="traveler_id">旅者ID</string>
+    <string name="password">密码</string>
+    <string name="chats">聊天</string>
+    <string name="profile">我的</string>
+    <string name="send_message">发送消息</string>
+    <string name="type_message">输入消息...</string>
+    <string name="ai_chat">AI助手</string>
+    <string name="group_chat">群聊</string>
+    <string name="message_recalled">消息已撤回</string>
+    <string name="recall_message">撤回</string>
+    <string name="share_contact">分享名片</string>
+    <string name="change_avatar">更换头像</string>
+    <string name="avatar_accessory">头像挂件</string>
+    <string name="read">已读</string>
+    <string name="unread">未读</string>
+    <string name="markdown_support">支持Markdown格式</string>
+    <string name="send_image">发送图片</string>
+    <string name="send_voice">发送语音</string>
+    <string name="send_emoji">表情</string>
+</resources>
