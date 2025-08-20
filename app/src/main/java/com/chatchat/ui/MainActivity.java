@@ -23,6 +23,7 @@ import com.chatchat.database.AppDatabase;
 import com.chatchat.database.ChatGroupDao;
 import com.chatchat.model.ChatGroup;
 import com.chatchat.service.CloudSyncManager;
+import com.chatchat.utils.GpuOptimizationManager;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -38,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // 启用GPU硬件加速
+        GpuOptimizationManager.enableHardwareAcceleration(this);
         
         // Check authentication first
         sharedPreferences = getSharedPreferences("ChatChatPrefs", MODE_PRIVATE);
@@ -62,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
         
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
+        
+        // 为导航视图启用GPU加速
+        GpuOptimizationManager.enableGpuLayerForView(navigationView);
         
         // Update navigation header with user info
         updateNavigationHeader(navigationView);
