@@ -19,11 +19,19 @@ import androidx.appcompat.widget.Toolbar;
 import com.chatchat.R;
 import com.chatchat.auth.JwtUtils;
 import com.chatchat.ui.auth.LoginActivity;
+import com.chatchat.database.AppDatabase;
+import com.chatchat.database.ChatGroupDao;
+import com.chatchat.model.ChatGroup;
+import java.util.Arrays;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     private SharedPreferences sharedPreferences;
+    private ExecutorService executor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "开始新对话", Snackbar.LENGTH_LONG)
+                createDemoGroupChat();
+                Snackbar.make(view, "已创建演示群聊", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -100,5 +109,39 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    private void createDemoGroupChat() {
+        if (executor == null) {
+            executor = Executors.newSingleThreadExecutor();
+        }
+        
+        executor.execute(() -> {
+            AppDatabase database = AppDatabase.getDatabase(this);
+            ChatGroupDao chatGroupDao = database.chatGroupDao();
+            
+            String currentUserId = sharedPreferences.getString("current_user_id", "user1");
+            
+            // Create a demo group chat
+            ChatGroup demoGroup = new ChatGroup(
+                UUID.randomUUID().toString(),
+                "演示群聊 " + System.currentTimeMillis() % 1000,
+                currentUserId
+            );
+            
+            demoGroup.setDescription("这是一个演示群聊");
+            demoGroup.setMemberIds(Arrays.asList(currentUserId, "ai_assistant", "demo_user"));
+            demoGroup.setAdminIds(Arrays.asList(currentUserId));
+            
+            chatGroupDao.insertChatGroup(demoGroup);
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (executor != null) {
+            executor.shutdown();
+        }
     }
 }

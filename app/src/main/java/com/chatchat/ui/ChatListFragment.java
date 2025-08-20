@@ -14,9 +14,12 @@ import com.chatchat.R;
 import com.chatchat.database.AppDatabase;
 import com.chatchat.database.MessageDao;
 import com.chatchat.database.UserDao;
+import com.chatchat.database.ChatGroupDao;
 import com.chatchat.model.Message;
 import com.chatchat.model.User;
+import com.chatchat.model.ChatGroup;
 import com.chatchat.ui.adapter.ChatListAdapter;
+import com.chatchat.ui.chat.GroupChatActivity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +33,7 @@ public class ChatListFragment extends Fragment {
     private AppDatabase database;
     private MessageDao messageDao;
     private UserDao userDao;
+    private ChatGroupDao chatGroupDao;
     private ExecutorService executor;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -53,6 +57,7 @@ public class ChatListFragment extends Fragment {
         database = AppDatabase.getDatabase(requireContext());
         messageDao = database.messageDao();
         userDao = database.userDao();
+        chatGroupDao = database.chatGroupDao();
         executor = Executors.newSingleThreadExecutor();
     }
 
@@ -64,10 +69,17 @@ public class ChatListFragment extends Fragment {
     }
 
     private void openChat(ChatItem chatItem) {
-        Intent intent = new Intent(getActivity(), com.chatchat.ui.chat.ChatActivity.class);
-        intent.putExtra(com.chatchat.ui.chat.ChatActivity.EXTRA_CHAT_NAME, chatItem.getName());
-        intent.putExtra(com.chatchat.ui.chat.ChatActivity.EXTRA_CHAT_USER_ID, chatItem.getUserId());
-        intent.putExtra(com.chatchat.ui.chat.ChatActivity.EXTRA_IS_AI_CHAT, chatItem.isAiChat());
+        Intent intent;
+        if (chatItem.isGroupChat()) {
+            intent = new Intent(getActivity(), GroupChatActivity.class);
+            intent.putExtra(GroupChatActivity.EXTRA_GROUP_ID, chatItem.getGroupId());
+            intent.putExtra(GroupChatActivity.EXTRA_GROUP_NAME, chatItem.getName());
+        } else {
+            intent = new Intent(getActivity(), com.chatchat.ui.chat.ChatActivity.class);
+            intent.putExtra(com.chatchat.ui.chat.ChatActivity.EXTRA_CHAT_NAME, chatItem.getName());
+            intent.putExtra(com.chatchat.ui.chat.ChatActivity.EXTRA_CHAT_USER_ID, chatItem.getUserId());
+            intent.putExtra(com.chatchat.ui.chat.ChatActivity.EXTRA_IS_AI_CHAT, chatItem.isAiChat());
+        }
         startActivity(intent);
     }
 
@@ -84,6 +96,19 @@ public class ChatListFragment extends Fragment {
             aiChat.setUnreadCount(0);
             aiChat.setIsAiChat(true);
             chatItems.add(aiChat);
+
+            // Load group chats
+            List<ChatGroup> groups = chatGroupDao.getAllChatGroups();
+            for (ChatGroup group : groups) {
+                ChatItem chatItem = new ChatItem();
+                chatItem.setName(group.getGroupName());
+                chatItem.setGroupId(group.getGroupId());
+                chatItem.setLastMessage("群聊消息");
+                chatItem.setTimestamp(group.getLastMessageTime());
+                chatItem.setUnreadCount(group.getUnreadCount());
+                chatItem.setIsGroupChat(true);
+                chatItems.add(chatItem);
+            }
 
             // Load actual user chats would go here
             List<User> users = userDao.getAllUsers();
@@ -128,11 +153,13 @@ public class ChatListFragment extends Fragment {
     public static class ChatItem {
         private String name;
         private String userId;
+        private String groupId;
         private String lastMessage;
         private long timestamp;
         private int unreadCount;
         private boolean isOnline;
         private boolean isAiChat;
+        private boolean isGroupChat;
 
         // Getters and setters
         public String getName() { return name; }
@@ -140,6 +167,9 @@ public class ChatListFragment extends Fragment {
 
         public String getUserId() { return userId; }
         public void setUserId(String userId) { this.userId = userId; }
+
+        public String getGroupId() { return groupId; }
+        public void setGroupId(String groupId) { this.groupId = groupId; }
 
         public String getLastMessage() { return lastMessage; }
         public void setLastMessage(String lastMessage) { this.lastMessage = lastMessage; }
@@ -155,5 +185,8 @@ public class ChatListFragment extends Fragment {
 
         public boolean isAiChat() { return isAiChat; }
         public void setIsAiChat(boolean aiChat) { isAiChat = aiChat; }
+
+        public boolean isGroupChat() { return isGroupChat; }
+        public void setIsGroupChat(boolean groupChat) { isGroupChat = groupChat; }
     }
 }
