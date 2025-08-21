@@ -62,6 +62,21 @@
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.ChatChat.NoActionBar" />
+
+        <activity
+            android:name=".ui.search.UserSearchActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChatChat.NoActionBar" />
+
+        <activity
+            android:name=".ui.profile.UserProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChatChat.NoActionBar" />
+
+        <activity
+            android:name=".ui.profile.EditProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChatChat.NoActionBar" />
             
     </application>
 

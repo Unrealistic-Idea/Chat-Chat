@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Theme Colors - Black-based -->
+    <color name="primary">#2196F3</color>
+    <color name="primary_variant">#1976D2</color>
+    <color name="secondary">#FFC107</color>
+    <color name="secondary_variant">#FF9800</color>
+    <color name="background">#000000</color>
+    <color name="surface">#121212</color>
+    <color name="error">#FF5252</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="light_gray">#1E1E1E</color>
+    <color name="gray">#2D2D2D</color>
+    <color name="dark_gray">#424242</color>
+    <color name="message_sent">#1A2332</color>
+    <color name="message_received">#1E1E1E</color>
+    <color name="online_status">#4CAF50</color>
+    <color name="offline_status">#757575</color>
+    
+    <!-- Text colors for dark theme -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B0B0</color>
+    <color name="text_hint">#666666</color>
+    
+    <!-- UI element colors -->
+    <color name="divider">#2D2D2D</color>
+    <color name="card_background">#121212</color>
+    <color name="toolbar_background">#000000</color>
+</resources>

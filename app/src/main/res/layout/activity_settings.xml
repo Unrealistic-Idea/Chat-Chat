@@ -145,6 +145,63 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- 权限管理卡片 -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="4dp"
+                app:cardCornerRadius="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="权限管理"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:id="@+id/textViewPermissionStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="权限状态: 检查中..."
+                        android:textSize="16sp"
+                        android:layout_marginBottom="16dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonCheckPermissions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="检查权限状态"
+                        android:layout_marginBottom="8dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonRequestPermissions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="请求权限"
+                        android:layout_marginBottom="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonOpenAppSettings"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="打开应用设置"
+                        style="@style/Widget.Material3.Button.TextButton" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
         </LinearLayout>
 
     </ScrollView>

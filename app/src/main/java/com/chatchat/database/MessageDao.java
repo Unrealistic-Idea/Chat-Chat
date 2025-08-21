@@ -47,6 +47,6 @@ public interface MessageDao {
     @Query("DELETE FROM messages WHERE messageId = :messageId")
     void deleteMessageById(String messageId);
 
-    @Query("SELECT * FROM messages WHERE isAiMessage = 1 AND (senderId = :userId OR receiverId = :userId) ORDER BY timestamp ASC")
+    @Query("SELECT * FROM messages WHERE ((senderId = :userId AND receiverId = 'ai_assistant') OR (senderId = 'ai_assistant' AND receiverId = :userId)) ORDER BY timestamp ASC")
     List<Message> getAiMessages(String userId);
 }

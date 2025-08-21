@@ -31,6 +31,8 @@ public class ProfileFragment extends Fragment {
     private LinearLayout layoutAvatarAccessory;
     private LinearLayout layoutShareContact;
     private MaterialButton buttonLogout;
+    private MaterialButton buttonViewProfile;
+    private MaterialButton buttonEditProfile;
     private SharedPreferences sharedPreferences;
     private AvatarManager avatarManager;
     
@@ -57,6 +59,8 @@ public class ProfileFragment extends Fragment {
         layoutAvatarAccessory = root.findViewById(R.id.layoutAvatarAccessory);
         layoutShareContact = root.findViewById(R.id.layoutShareContact);
         buttonLogout = root.findViewById(R.id.buttonLogout);
+        buttonViewProfile = root.findViewById(R.id.buttonViewProfile);
+        buttonEditProfile = root.findViewById(R.id.buttonEditProfile);
     }
 
     private void initSharedPreferences() {
@@ -89,6 +93,14 @@ public class ProfileFragment extends Fragment {
 
         buttonLogout.setOnClickListener(v -> {
             logout();
+        });
+        
+        buttonViewProfile.setOnClickListener(v -> {
+            viewProfile();
+        });
+        
+        buttonEditProfile.setOnClickListener(v -> {
+            editProfile();
         });
     }
 
@@ -130,6 +142,23 @@ public class ProfileFragment extends Fragment {
                 }
             }
         }
+    }
+    
+    private void viewProfile() {
+        String currentUserId = sharedPreferences.getString("current_user_id", "未知用户");
+        String username = sharedPreferences.getString("username", currentUserId);
+        String email = sharedPreferences.getString("user_email", "");
+        
+        Intent intent = new Intent(getActivity(), UserProfileActivity.class);
+        intent.putExtra("user_id", currentUserId);
+        intent.putExtra("username", username);
+        intent.putExtra("email", email);
+        startActivity(intent);
+    }
+    
+    private void editProfile() {
+        Intent intent = new Intent(getActivity(), EditProfileActivity.class);
+        startActivity(intent);
     }
 
     private void shareContact() {
