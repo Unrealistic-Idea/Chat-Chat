@@ -54,6 +54,21 @@ android {
             '--add-exports', 'java.base/sun.nio.ch=ALL-UNNAMED',
             '--add-exports', 'java.base/java.lang=ALL-UNNAMED'
         ]
+        options.encoding = 'UTF-8'
+    }
+    
+    // Disable JDK image transformation for Android builds
+    configurations.all {
+        exclude group: 'com.android.tools.external.com-intellij', module: 'intellij-core'
+        resolutionStrategy {
+            eachDependency { details ->
+                if (details.requested.group == 'com.android.tools.build' && 
+                    details.requested.name == 'bundletool') {
+                    details.useVersion '1.15.6'
+                    details.because 'Fix JDK image transformation issues'
+                }
+            }
+        }
     }
 }
 
