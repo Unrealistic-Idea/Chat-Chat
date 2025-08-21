@@ -188,6 +188,7 @@ public class ChatActivity extends AppCompatActivity {
         
         if (isAiChat) {
             userMessage.setReceiverId("ai_assistant");
+            userMessage.setAiMessage(true); // Mark user messages in AI chat as AI conversation
         } else {
             userMessage.setReceiverId(chatUserId);
         }

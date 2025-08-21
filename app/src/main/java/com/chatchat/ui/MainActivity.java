@@ -2,14 +2,18 @@ package com.chatchat.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.app.AlertDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
+import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
@@ -28,7 +32,9 @@ import com.chatchat.database.ChatGroupDao;
 import com.chatchat.model.ChatGroup;
 import com.chatchat.service.CloudSyncManager;
 import com.chatchat.utils.GpuOptimizationManager;
+import com.chatchat.utils.PermissionManager;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,7 +60,45 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         
+        // 检查是否为首次启动，如果是则请求权限
+        if (PermissionManager.isFirstLaunch(this)) {
+            showFirstLaunchPermissionDialog();
+            return;
+        }
+        
         setContentView(R.layout.activity_main);
+        setupUI();
+    }
+    
+    /**
+     * 显示首次启动权限对话框
+     */
+    private void showFirstLaunchPermissionDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("欢迎使用Chat-Chat")
+            .setMessage("为了提供更好的用户体验，我们需要获取一些必要的权限：\n\n" +
+                       "• 相机权限：用于拍摄和分享照片\n" +
+                       "• 存储权限：用于保存和读取文件\n" +
+                       "• 录音权限：用于语音消息\n" +
+                       "• 通知权限：用于接收消息提醒\n\n" +
+                       "您可以随时在设置中修改这些权限。")
+            .setPositiveButton("授权", (dialog, which) -> {
+                PermissionManager.requestPermissions(this);
+            })
+            .setNegativeButton("跳过", (dialog, which) -> {
+                PermissionManager.markFirstLaunchCompleted(this);
+                setContentView(R.layout.activity_main);
+                setupUI();
+                Toast.makeText(this, "您可以在设置中手动授权权限", Toast.LENGTH_LONG).show();
+            })
+            .setCancelable(false)
+            .show();
+    }
+    
+    /**
+     * 设置UI组件
+     */
+    private void setupUI() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         
@@ -120,6 +164,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, 
+                                         @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        
+        if (requestCode == PermissionManager.PERMISSION_REQUEST_CODE) {
+            PermissionManager.markFirstLaunchCompleted(this);
+            
+            // 检查权限授权结果
+            List<String> deniedPermissions = PermissionManager.getUngrantedPermissions(this);
+            
+            if (deniedPermissions.isEmpty()) {
+                Toast.makeText(this, "权限授权成功", Toast.LENGTH_SHORT).show();
+            } else {
+                StringBuilder message = new StringBuilder("以下权限被拒绝：\n");
+                for (String permission : deniedPermissions) {
+                    message.append("• ").append(PermissionManager.getPermissionDisplayName(permission)).append("\n");
+                }
+                message.append("\n您可以在设置中手动授权这些权限");
+                
+                new AlertDialog.Builder(this)
+                    .setTitle("权限提醒")
+                    .setMessage(message.toString())
+                    .setPositiveButton("知道了", null)
+                    .show();
+            }
+            
+            // 无论权限是否全部授权，都继续初始化应用
+            setContentView(R.layout.activity_main);
+            setupUI();
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -130,7 +207,11 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_search_users) {
+            Intent intent = new Intent(this, com.chatchat.ui.search.UserSearchActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.action_settings) {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;
