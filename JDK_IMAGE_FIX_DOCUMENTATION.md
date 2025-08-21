@@ -98,10 +98,33 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-7.6.4-bin.zip
 
 ## Testing
 After applying these fixes:
-1. Run `./gradlew clean`
-2. Run `./gradlew app:compileDebugJava`
+1. Run `./test_jdk_fix.sh` (provided test script)
+2. Or manually run:
+   ```bash
+   ./gradlew clean
+   ./gradlew app:compileDebugJava
+   ./gradlew build
+   ```
 3. Verify that the JDK image transformation error is resolved
-4. Test full build with `./gradlew build`
+
+## Network Connectivity Issues
+If you encounter network connectivity issues when downloading dependencies:
+1. Ensure you have internet access to Google's Maven repository
+2. Try using the Aliyun mirrors (already configured in settings.gradle)
+3. If behind a corporate firewall, configure proxy settings in gradle.properties:
+   ```properties
+   systemProp.http.proxyHost=your.proxy.host
+   systemProp.http.proxyPort=8080
+   systemProp.https.proxyHost=your.proxy.host
+   systemProp.https.proxyPort=8080
+   ```
+
+## Key Changes Made
+1. **gradle.properties**: Enhanced JVM settings, disabled Jetifier, added path encoding fixes
+2. **app/build.gradle**: Added Java compiler arguments and dependency resolution strategy
+3. **gradle/wrapper/gradle-wrapper.properties**: Set to Gradle 8.0 for compatibility
+4. **build.gradle**: Used legacy buildscript approach with AGP 7.4.2
+5. **settings.gradle**: Enhanced repository configuration
 
 ## Compatibility Matrix
 | Gradle Version | AGP Version | JDK Version | Status |
