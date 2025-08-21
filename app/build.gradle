@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'com.chatchat'
-    compileSdk 35
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.chatchat"
-        minSdk 34
-        targetSdk 35
+        minSdk 24
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -65,7 +65,7 @@ configurations.all {
 }
 
 dependencies {
-    implementation 'com.android.tools.build:gradle:8.3.0'
+    // Remove this line - it shouldn't be in the app build.gradle
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
