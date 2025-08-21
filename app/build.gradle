@@ -1,6 +1,4 @@
-plugins {
-    id 'com.android.application'
-}
+apply plugin: 'com.android.application'
 
 android {
     namespace 'com.chatchat'
@@ -48,6 +46,14 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/io.netty.versions.properties'
         exclude 'META-INF/INDEX.LIST'
+    }
+    
+    // Prevent JDK image transformation errors
+    tasks.withType(JavaCompile) {
+        options.compilerArgs += [
+            '--add-exports', 'java.base/sun.nio.ch=ALL-UNNAMED',
+            '--add-exports', 'java.base/java.lang=ALL-UNNAMED'
+        ]
     }
 }
 
